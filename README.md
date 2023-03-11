@@ -342,7 +342,7 @@ cd 120221227_dj1_denovo_assembly;
 cp ../SAQE/11TransDecoder.sh ./;
 cp ./fltr_lowexpr_dj1_trinity_out_dir.Trinity.fasta ./Trinity.fasta;
 chmod +x ./11TransDecoder.sh;
-./11TransDecoder.sh # 実行
+./11TransDecoder.sh
 
 # Download Ensembl protein database
 mkdir db;
@@ -358,10 +358,10 @@ cp ../Sequence_editor/00_prepare_faa_4Fanflow.sh ./;
 chmod +x 00_prepare_faa_4Fanflow.sh;
 ./00_prepare_faa_4Fanflow.sh
 
-# ggsearchを実行
+# Run ggsearch
 cp ../SAQE/15ggsearch.sh ./;
 chmod +x ./15ggsearch.sh;
-./15ggsearch.sh Trinity.fasta.transdecoder.pep Danio_rerio.GRCz11.pep.all.fa2; # 実行
+./15ggsearch.sh Trinity.fasta.transdecoder.pep Danio_rerio.GRCz11.pep.all.fa2;
 
 # Make annotation table
 cp ../SAQE/15parseggsearch.sh ./;
