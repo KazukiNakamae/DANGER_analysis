@@ -1,7 +1,7 @@
 # DANGER Analysis
 Risk-averse on/off-target assessment for CRISPR editing without reference genome. 
 
-<img src="https://github.com/KazukiNakamae/DANGER_analysis/images/DANGERAnalysis.png" alt="DANGERAnalysis_logo" title="DANGERAnalysis_logo" width="440" height="155">
+<img src="https://github.com/KazukiNakamae/DANGER_analysis/blob/main/images/DANGERAnalysis.png" alt="DANGERAnalysis_logo" title="DANGERAnalysis_logo" width="440" height="155">
 
 DANGER (**D**eleterious and **AN**ticipatable **G**uides **E**valuated by **R**NA-sequencing) Analysis; a bioinformatics pipeline can elucidate genomic on/off-target sites on mRNA-transcribed regions related to expression changes and then quantify phenotypic risk at the gene ontology (GO) term level using RNA-seq data. 
 
