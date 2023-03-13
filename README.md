@@ -23,7 +23,7 @@ Kazuki Nakamae, Ph.D.
 
 [1] XXX
 
-## Run DANGER Analysis step by step on your local environment terminal
+## Run DANGER Analysis step by step on your local environment
 
 ### Installation of DANGER Analysis
 
