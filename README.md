@@ -21,7 +21,7 @@ Kazuki Nakamae, Ph.D.
 
 ## References
 
-[1] XXX
+[1] Nakamae and Bono, DANGER analysis: Risk-averse on/off-target assessment for CRISPR editing without a reference genome. bioRxiv. 2023 https://doi.org/10.1101/2023.03.11.531115
 
 ## Run DANGER Analysis step by step on your local environment
 
