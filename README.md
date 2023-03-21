@@ -49,7 +49,7 @@ sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:tes
 (EXAMPLE)
 ```bash
 sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:test python /tmp/collect_exp_data.py \
--o collection \
+-o exp_collection \
 -w rmrna_dj1_ctrl_rep1/RSEM.isoforms.results rmrna_dj1_ctrl_rep2/RSEM.isoforms.results rmrna_dj1_ctrl_rep3/RSEM.isoforms.results \
 -e rmrna_dj1_ko_rep1/RSEM.isoforms.results rmrna_dj1_ko_rep2/RSEM.isoforms.results rmrna_dj1_ko_rep3/RSEM.isoforms.results \
 -t 2.5;
