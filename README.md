@@ -66,10 +66,10 @@ ctrl_edited_fltrexpr_contig_tpm_onratio.csv     summary of TPM
 #### collect_exp_data.py options
 
 ```
--o     Output directory. The name should be unique.
--w     "RSEM.isoforms.results" in the expression profiles of WT samples.
--e     "RSEM.isoforms.results" in the expression profiles of Edited samples
--t     Threshold for Edited/WT ratio. Edited/WT > (Threshold) is "upregulated." Edited/WT < 1/(Threshold) is "downregulated."
+-o:     Output directory. The name should be unique.
+-w:     "RSEM.isoforms.results" in the expression profiles of WT samples.
+-e:     "RSEM.isoforms.results" in the expression profiles of Edited samples
+-t:     Threshold for Edited/WT ratio. Edited/WT > (Threshold) is "upregulated." Edited/WT < 1/(Threshold) is "downregulated."
 ```
 
 ### Step2: GO Annotation & D-index Calculation
@@ -104,7 +104,7 @@ NRR;
 #### collect_exp_data.py options
 
 ```
-Database for GO annotation    Available database for GO annotation
+Database for GO annotation:    Available database for GO annotation
 Users can choose here:
 - Hs : Human
 - Dm : Fly
@@ -125,16 +125,21 @@ Users can choose here:
 - Xl : Frog
 - Mxanthus : M.xanthus
 
-Database Type     Sequence used for gene annotation
+Database Type:     Sequence used for gene annotation
 - pep : Protein sequence
 - cdna : mRNA sequence
 
-Output directory     Output directory. The name should be a unique
-summary of the TPM     Comma-separated text file, including TPM values of each sample, Edited/WT ratio, and expression labels
-de novo transcriptome assembly (without redundancy)     de novo transcriptome assembly from Trinity
-binding sequence of protospacer & PAM     Fasta file including single sequence of on-target site
-mismatch number for off-target search     mismatch number used in CrisFlash. It can be 1-11 nt
-PAM for off-target search   PAM sequence used in CrisFlash. SpCas9 is generally NGG. If you want to consider minor PAM in SpCas9, you can choose NRR.
+Output directory:     Output directory. The name should be a unique
+
+summary of the TPM:     Comma-separated text file, including TPM values of each sample, Edited/WT ratio, and expression labels
+
+de novo transcriptome assembly (without redundancy):     de novo transcriptome assembly from Trinity
+
+binding sequence of protospacer & PAM:     Fasta file including single sequence of on-target site
+
+mismatch number for off-target search:     mismatch number used in CrisFlash. It can be 1-11 nt
+
+PAM for off-target search:   PAM sequence used in CrisFlash. SpCas9 is generally NGG. If you want to consider minor PAM in SpCas9, you can choose NRR.
 ```
 
 The result is saved in DANGER_analysis_result.
