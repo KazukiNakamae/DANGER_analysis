@@ -101,7 +101,7 @@ guide_pam.fa \
 NRR;
 ```
 
-#### collect_exp_data.py options
+#### dangeranalysis_v1.sh options
 
 ```
 Database for GO annotation:    Available database for GO annotation
