@@ -23,7 +23,7 @@ Kazuki Nakamae, Ph.D.
 
 [1] Nakamae and Bono, DANGER analysis: Risk-averse on/off-target assessment for CRISPR editing without a reference genome. bioRxiv. 2023 https://doi.org/10.1101/2023.03.11.531115
 
-## Run DANGER Analysis using Docker images
+## Run DANGER Analysis using Docker images (Recommended)
 
 Please prepare the following file in your current directory
 - "fltr_lowexpr_dj1_trinity_out_dir.Trinity.fasta": de novo transcriptome assembly (without redundancy)
@@ -38,7 +38,7 @@ The example dataset was deposited in [SourceForge](https://sourceforge.net/proje
 
 Run collect_exp_data.py in Docker image.
 
-```bash
+```
 sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:test python /tmp/collect_exp_data.py \
 -o <Output directory> \
 -w <"RSEM.isoforms.results" in the expression profiles of WT samples> \
@@ -76,7 +76,7 @@ ctrl_edited_fltrexpr_contig_tpm_onratio.csv     summary of TPM
 
 Run dangeranalysis_v1.sh in Docker image.
 
-```bash
+```
 sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:test bash /tmp/dangeranalysis_v1.sh \
 <Database for GO annotation> \
 <Database Type> \
@@ -144,6 +144,8 @@ PAM for off-target search:   PAM sequence used in CrisFlash. SpCas9 is generally
 
 The result is saved in DANGER_analysis_result.
 
+
+## Run DANGER Analysis in your local environment using conda (Deprecated)
 
 <details>
 <summary>Click here</summary>
