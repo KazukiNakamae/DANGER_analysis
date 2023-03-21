@@ -57,11 +57,15 @@ sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:tes
 
 The output:
 
-```
-ctrl_edited_fltrexpr_contig_expected_count_onratio.csv     summary of Read Count
-ctrl_edited_fltrexpr_contig_fpkm_onratio.csv    summary of FPKM
-ctrl_edited_fltrexpr_contig_tpm_onratio.csv     summary of TPM
-```
+- ctrl_edited_fltrexpr_contig_expected_count_onratio.csv:
+Comma-separated text file, including read count values of each sample, Edited/WT ratio, and expression labels
+
+- ctrl_edited_fltrexpr_contig_fpkm_onratio.csv:
+Comma-separated text file, including FPKM values of each sample, Edited/WT ratio, and expression labels
+
+- ctrl_edited_fltrexpr_contig_tpm_onratio.csv:
+Comma-separated text file, including TPM values of each sample, Edited/WT ratio, and expression labels
+
 
 #### collect_exp_data.py options
 
