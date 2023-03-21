@@ -25,10 +25,10 @@ Kazuki Nakamae, Ph.D.
 
 ## Run DANGER Analysis using Docker images (Recommended)
 
-Please prepare the following file in your current directory
+Please prepare the following files in your current directory
 - "fltr_lowexpr_dj1_trinity_out_dir.Trinity.fasta": de novo transcriptome assembly (without redundancy)
 - "guide_pam.fa": The binding sequence of protospacer & PAM (e.g. GCCGGTTCAGTGCAGCCGTGAGG)
-- Each "RSEM.isoforms.results": the expression profiles exported from Trinity: align_and_estimate_abundance.pl
+- Each "RSEM.isoforms.results": the expression profiles exported from Trinity:align_and_estimate_abundance.pl
 
 <img src="https://github.com/KazukiNakamae/DANGER_analysis/blob/main/images/example_fileset.png" alt="example_fileset" title="example_fileset" height="400">
 
