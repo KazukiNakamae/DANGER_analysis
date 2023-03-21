@@ -23,7 +23,125 @@ Kazuki Nakamae, Ph.D.
 
 [1] Nakamae and Bono, DANGER analysis: Risk-averse on/off-target assessment for CRISPR editing without a reference genome. bioRxiv. 2023 https://doi.org/10.1101/2023.03.11.531115
 
-## Run DANGER Analysis step by step on your local environment
+## Run DANGER Analysis using Docker images
+
+Please prepare the following file in your current directory
+- "fltr_lowexpr_dj1_trinity_out_dir.Trinity.fasta": de novo transcriptome assembly (without redundancy)
+- "guide_pam.fa": The binding sequence of protospacer & PAM (e.g. GCCGGTTCAGTGCAGCCGTGAGG)
+- Each "RSEM.isoforms.results": the expression profiles exported from Trinity: align_and_estimate_abundance.pl
+
+<img src="https://github.com/KazukiNakamae/DANGER_analysis/blob/main/images/example_fileset.png" alt="example_fileset" title="example_fileset" height="400">
+
+The example dataset was deposited in [SourceForge](https://sourceforge.net/projects/danger-analysis-v1/files/example.tar.gz/download).
+
+### Step1: Summarize expression profiles
+
+Run collect_exp_data.py in Docker image.
+
+```bash
+sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:test python /tmp/collect_exp_data.py \
+-o <Output directory> \
+-w <"RSEM.isoforms.results" in the expression profiles of WT samples> \
+-e <"RSEM.isoforms.results" in the expression profiles of Edited samples> \
+-t <Threshold for Edited/WT ratio>;
+```
+
+(EXAMPLE)
+```bash
+sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:test python /tmp/collect_exp_data.py \
+-o exp_collection \
+-w RSEM.isoforms.results RSEM.isoforms.results RSEM.isoforms.results \
+-e RSEM.isoforms.results RSEM.isoforms.results RSEM.isoforms.results \
+-t 2.5;
+```
+
+The output:
+
+```
+ctrl_edited_fltrexpr_contig_expected_count_onratio.csv     summary of Read Count
+ctrl_edited_fltrexpr_contig_fpkm_onratio.csv    summary of FPKM
+ctrl_edited_fltrexpr_contig_tpm_onratio.csv     summary of TPM
+```
+
+#### collect_exp_data.py options
+
+```
+-o     Output directory. The name should be unique.
+-w     "RSEM.isoforms.results" in the expression profiles of WT samples.
+-e     "RSEM.isoforms.results" in the expression profiles of Edited samples
+-t     Threshold for Edited/WT ratio. Edited/WT > (Threshold) is "upregulated." Edited/WT < 1/(Threshold) is "downregulated."
+```
+
+### Step2: GO Annotation & D-index Calculation
+
+Run dangeranalysis_v1.sh in Docker image.
+
+```bash
+sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:test bash /tmp/dangeranalysis_v1.sh \
+<Database for GO annotation> \
+<Database Type> \
+<Output directory> \
+<summary of TPM> \
+<de novo transcriptome assembly (without redundancy)> \
+<binding sequence of protospacer & PAM> \
+<mismatch number for off-target search> \
+<PAM for off-target search>;
+```
+
+(EXAMPLE)
+```bash
+sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:test bash /tmp/dangeranalysis_v1.sh \
+Dr \
+pep \
+output \
+exp_collection/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
+fltr_lowexpr_dj1_trinity_out_dir.Trinity.fasta \
+guide_pam.fa \
+11 \
+NRR;
+```
+
+#### collect_exp_data.py options
+
+```
+Database for GO annotation    Available database for GO annotation
+Users can choose here:
+- Hs : Human
+- Dm : Fly
+- Ce : C.elegans
+- Dr : Zebrafish
+- Ag : Mosquito
+- At : A.thaliana
+- Bt : Cow
+- Cf : Dog
+- EcK12 : E.coli K-12
+- EcSakai E.coli O157:H7 str. Sakai
+- Gg : Chicken
+- Mmu : Monkey
+- Pt : Chimpanzee
+- Rn : Rat
+- Sc : Yeast
+- Ss : Pig
+- Xl : Frog
+- Mxanthus : M.xanthus
+
+Database Type     Sequence used for gene annotation
+- pep : Protein sequence
+- cdna : mRNA sequence
+
+Output directory     Output directory. The name should be a unique
+summary of the TPM     Comma-separated text file, including TPM values of each sample, Edited/WT ratio, and expression labels
+de novo transcriptome assembly (without redundancy)     de novo transcriptome assembly from Trinity
+binding sequence of protospacer & PAM     Fasta file including single sequence of on-target site
+mismatch number for off-target search     mismatch number used in CrisFlash. It can be 1-11 nt
+PAM for off-target search   PAM sequence used in CrisFlash. SpCas9 is generally NGG. If you want to consider minor PAM in SpCas9, you can choose NRR.
+```
+
+The result is saved in DANGER_analysis_result.
+
+
+<details>
+<summary>Click here</summary>
 
 ### Installation of DANGER Analysis
 
@@ -504,3 +622,5 @@ conda deactivate;
 ```
 
 The result is saved in DANGER_analysis_result.
+
+</details>
