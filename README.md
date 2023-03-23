@@ -39,7 +39,7 @@ The example dataset was deposited in [SourceForge](https://sourceforge.net/proje
 Run collect_exp_data.py in Docker image.
 
 ```
-sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:test python /tmp/collect_exp_data.py \
+sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0 python /tmp/collect_exp_data.py \
 -o <Output directory> \
 -w <"RSEM.isoforms.results" in the expression profiles of WT samples> \
 -e <"RSEM.isoforms.results" in the expression profiles of Edited samples> \
@@ -48,7 +48,7 @@ sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:tes
 
 (EXAMPLE)
 ```bash
-sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:test python /tmp/collect_exp_data.py \
+sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0 python /tmp/collect_exp_data.py \
 -o exp_collection \
 -w rmrna_dj1_ctrl_rep1/RSEM.isoforms.results rmrna_dj1_ctrl_rep2/RSEM.isoforms.results rmrna_dj1_ctrl_rep3/RSEM.isoforms.results \
 -e rmrna_dj1_ko_rep1/RSEM.isoforms.results rmrna_dj1_ko_rep2/RSEM.isoforms.results rmrna_dj1_ko_rep3/RSEM.isoforms.results \
@@ -81,7 +81,7 @@ Comma-separated text file, including TPM values of each sample, Edited/WT ratio,
 Run dangeranalysis_v1.sh in Docker image.
 
 ```
-sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:test bash /tmp/dangeranalysis_v1.sh \
+sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
 <Database for GO annotation> \
 <Database Type> \
 <Output directory> \
@@ -94,7 +94,7 @@ sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:test
 
 (EXAMPLE)
 ```bash
-sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:test bash /tmp/dangeranalysis_v1.sh \
+sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
 Dr \
 pep \
 output \

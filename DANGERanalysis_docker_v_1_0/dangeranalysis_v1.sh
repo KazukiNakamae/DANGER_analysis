@@ -357,11 +357,19 @@ cd /tmp/crisflash;
 make;
 cd /tmp;
 
-echo "done."
-echo "-------------------------------"
-echo "Download and Install TransDecoder"
-micromamba create --quiet -y -n transdecoder_env;
-micromamba install --quiet -y -n transdecoder_env -c anaconda -c conda-forge -c bioconda -y TransDecoder=5.5.0 pigz=2.6 blast=2.12.0 seqkit=2.3.1 gzip=1.12;
+if [ $db_type = "pep" ]; then
+  echo "done."
+  echo "-------------------------------"
+  echo "Download and Install TransDecoder"
+  micromamba create --quiet -y -n transdecoder_env;
+  micromamba install --quiet -y -n transdecoder_env -c anaconda -c conda-forge -c bioconda -y TransDecoder=5.5.0 pigz=2.6 blast=2.12.0 seqkit=2.3.1 gzip=1.12;
+elif [ $db_type = "cdna" ]; then
+  echo "done."
+  echo "-------------------------------"
+  echo "Download and Install seqkit"
+  micromamba create --quiet -y -n seqkit_env;
+  micromamba install --quiet -y -n seqkit_env -c anaconda -c conda-forge -c bioconda -y pigz=2.6 blast=2.12.0 seqkit=2.3.1 gzip=1.12;
+fi
 
 echo "done."
 echo "-------------------------------"
@@ -451,7 +459,10 @@ if [ $db_type = "pep" ]; then
   ./11TransDecoder.sh
   target_seq_file=Trinity.fasta.transdecoder.pep
 elif [ $db_type = "cdna" ]; then
-  target_seq_file=Trinity.fasta
+  cd /tmp;
+  micromamba activate seqkit_env;
+  cp ${assembly} Trinity.fasta;
+  target_seq_file=Trinity.fasta;
 else
   echo "Unexpected Input"
   echo "DANGER analysis aborts..."
