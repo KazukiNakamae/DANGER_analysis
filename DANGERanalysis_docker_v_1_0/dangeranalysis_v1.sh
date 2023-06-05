@@ -69,6 +69,7 @@ elif [ $ref_db = "Dm" ]; then
   fi
 elif [ $ref_db = "Ce" ]; then
   # (Ce)Worm
+  WBGene
   if [ $db_type = "pep" ]; then
     wget https://ftp.ensembl.org/pub/current_fasta/caenorhabditis_elegans/pep/Caenorhabditis_elegans.WBcel235.pep.all.fa.gz;
     db_data="Caenorhabditis_elegans.WBcel235.pep.all.fa.gz"
@@ -357,19 +358,11 @@ cd /tmp/crisflash;
 make;
 cd /tmp;
 
-if [ $db_type = "pep" ]; then
-  echo "done."
-  echo "-------------------------------"
-  echo "Download and Install TransDecoder"
-  micromamba create --quiet -y -n transdecoder_env;
-  micromamba install --quiet -y -n transdecoder_env -c anaconda -c conda-forge -c bioconda -y TransDecoder=5.5.0 pigz=2.6 blast=2.12.0 seqkit=2.3.1 gzip=1.12;
-elif [ $db_type = "cdna" ]; then
-  echo "done."
-  echo "-------------------------------"
-  echo "Download and Install seqkit"
-  micromamba create --quiet -y -n seqkit_env;
-  micromamba install --quiet -y -n seqkit_env -c anaconda -c conda-forge -c bioconda -y pigz=2.6 blast=2.12.0 seqkit=2.3.1 gzip=1.12;
-fi
+echo "done."
+echo "-------------------------------"
+echo "Download and Install TransDecoder"
+micromamba create --quiet -y -n transdecoder_env;
+micromamba install --quiet -y -n transdecoder_env -c anaconda -c conda-forge -c bioconda -y TransDecoder=5.5.0 pigz=2.6 blast=2.12.0 seqkit=2.3.1 gzip=1.12;
 
 echo "done."
 echo "-------------------------------"
@@ -403,8 +396,16 @@ wc -l ${outpur_dir}/Result_gRNAs.cas-offinder > ${outpur_dir}/Summary_Count_of_A
 echo "done."
 echo "-------------------------------"
 echo "Extract all off-target sites on de novo transcriptome assembly"
-ontarget_seq=$(sed 2p ${ontarget_fasta} | echo)
-awk '{ if ($4 != "'$ontarget_seq'") { print } }' ${outpur_dir}/Result_gRNAs.cas-offinder > ${outpur_dir}/Result_offtarget_all.cas-offinder;
+if [ "$(uname)" == 'Darwin' ]; then
+  ontarget_seq=$(sed 2p ${ontarget_fasta} | echo)
+  awk '{ if ($4 != "'$ontarget_seq'") { print } }' ${outpur_dir}/Result_gRNAs.cas-offinder > ${outpur_dir}/Result_offtarget_all.cas-offinder;
+elif [ "$(expr substr $(uname -s) 1 5)" == 'Linux' ]; then
+  ontarget_seq=$(sed -n 2p ${ontarget_fasta})
+  awk '$4 != "'$ontarget_seq'"' ${outpur_dir}/Result_gRNAs.cas-offinder > ${outpur_dir}/Result_offtarget_all.cas-offinder;
+else
+  echo "Your platform ($(uname -a)) is not supported."
+  exit 1
+fi
 wc -l ${outpur_dir}/Result_offtarget_all.cas-offinder;
 wc -l ${outpur_dir}/Result_offtarget_all.cas-offinder > ${outpur_dir}/Summary_Count_of_All_Off-target_Sites.txt;
 # off-target site (upto 11mm, NRR PAM) = 4232633 sites
@@ -459,10 +460,7 @@ if [ $db_type = "pep" ]; then
   ./11TransDecoder.sh
   target_seq_file=Trinity.fasta.transdecoder.pep
 elif [ $db_type = "cdna" ]; then
-  cd /tmp;
-  micromamba activate seqkit_env;
-  cp ${assembly} Trinity.fasta;
-  target_seq_file=Trinity.fasta;
+  target_seq_file=Trinity.fasta
 else
   echo "Unexpected Input"
   echo "DANGER analysis aborts..."

@@ -111,6 +111,7 @@ NRR;
 Database for GO annotation:    Available database for GO annotation
 Users can choose here:
 - Hs : Human
+- Mm : Mouse
 - Dm : Fly
 - Ce : C.elegans
 - Dr : Zebrafish

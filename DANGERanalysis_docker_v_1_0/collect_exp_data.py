@@ -22,7 +22,7 @@ def main():
     parser.add_argument('-o','--outdir', type=str,  help='output directory', required=True)
     parser.add_argument('-w','--wt_sample_files', type=str,  help='files of WT sample', default=[], required=True, nargs='+')
     parser.add_argument('-e','--edited_sample_files', type=str,  help='files of Edited sample', default=[], required=True, nargs='+')
-    parser.add_argument('-t','--threshold', type=float,  help='threshold of Edited/Wt ratio', default=[], required=True, nargs='+')
+    parser.add_argument('-t','--threshold', type=float,  help='threshold of Edited/Wt ratio', required=True)
     args = parser.parse_args()
 
     # set input/output directory path
@@ -87,9 +87,10 @@ def main():
         else:
             return "unchanged"
 
-    summary_expected_count_pddf["Exp"] = summary_expected_count_pddf["ON-ratio"].apply(_put_labels, threshold=2.5)
-    summary_TPM_pddf["Exp"] = summary_TPM_pddf["ON-ratio"].apply(_put_labels, threshold=2.5)
-    summary_FPKM_pddf["Exp"] = summary_FPKM_pddf["ON-ratio"].apply(_put_labels, threshold=2.5)
+    print("Threshold: " + str(args.threshold) + "...")
+    summary_expected_count_pddf["Exp"] = summary_expected_count_pddf["ON-ratio"].apply(_put_labels, threshold=float(args.threshold))
+    summary_TPM_pddf["Exp"] = summary_TPM_pddf["ON-ratio"].apply(_put_labels, threshold=float(args.threshold))
+    summary_FPKM_pddf["Exp"] = summary_FPKM_pddf["ON-ratio"].apply(_put_labels, threshold=float(args.threshold))
 
     id_pddf.reset_index()
     wt_expected_count_pddf.reset_index()

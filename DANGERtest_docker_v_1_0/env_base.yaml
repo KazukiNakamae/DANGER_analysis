@@ -1,0 +1,19 @@
+name: base
+channels:
+  - conda-forge
+  - anaconda
+dependencies:
+  - pyopenssl=20.0.1
+  - python=3.9.1
+  - requests=2.25.1
+  - wget=1.21.3
+  - git
+  - gcc=12.2.0
+  - make=4.2.1
+  - time=1.8
+  - gzip=1.12
+  - pigz=2.6
+  - pandas=1.4.2
+  - scipy=1.10.0
+  - matplotlib=3.5.1
+  - seaborn=0.11.2
