@@ -16,6 +16,7 @@ import pandas as pd
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 import seaborn as sns
+import math
 
 #########################################
 def main():
@@ -57,6 +58,8 @@ def main():
             mean = group_df.iloc[:, 2].mean()
             sem = stats.sem(group_df.iloc[:, 2])
             ci = stats.t.interval(confidence_level, len(group_df.iloc[:, 2]) - 1, loc=mean, scale=sem) # 信頼区間
+            if any(math.isnan(x) for x in ci):
+                continue
             confidence_intervals[label] = ci
 
         return confidence_intervals
@@ -92,9 +95,9 @@ def main():
     # ネガコンデータのD-indexの信頼区間を算出
     bp_negative_borders = calculate_confidence_interval(args.neg_collection_dir, "DANGER_index_on_Biological_Process.txt", args.confidence_level)
     target_bp_dindex_df['Confidence_Interval_Lower_on_Null_Distribution'] = \
-        target_bp_dindex_df[target_bp_dindex_df.columns[0]].to_frame().applymap(lambda x, bp_negative_borders: bp_negative_borders.get(x, [None])[0], bp_negative_borders=bp_negative_borders)
+        target_bp_dindex_df[target_bp_dindex_df.columns[0]].to_frame().applymap(lambda x, bp_negative_borders: bp_negative_borders.get(x, [None, None])[0], bp_negative_borders=bp_negative_borders)
     target_bp_dindex_df['Confidence_Interval_Upper_on_Null_Distribution'] = \
-        target_bp_dindex_df[target_bp_dindex_df.columns[0]].to_frame().applymap(lambda x, bp_negative_borders: bp_negative_borders.get(x, [None])[1], bp_negative_borders=bp_negative_borders)
+        target_bp_dindex_df[target_bp_dindex_df.columns[0]].to_frame().applymap(lambda x, bp_negative_borders: bp_negative_borders.get(x, [None, None])[1], bp_negative_borders=bp_negative_borders)
     # import pdb; pdb.set_trace()
     target_bp_dindex_df.to_csv(os.path.join(args.output_dir, "All_DANGER_index_on_Biological_Process.txt"), index=False, header=True, sep='\t')
     target_bp_dindex_df.query('Dindex > Confidence_Interval_Upper_on_Null_Distribution').to_csv(os.path.join(args.output_dir, "Significant_DANGER_index_on_Biological_Process.txt"), index=False, header=True, sep='\t')
@@ -113,9 +116,9 @@ def main():
     # ネガコンデータのD-indexの信頼区間を算出
     cc_negative_borders = calculate_confidence_interval(args.neg_collection_dir, "DANGER_index_on_Cellular_Component.txt", args.confidence_level)
     target_cc_dindex_df['Confidence_Interval_Lower_on_Null_Distribution'] = \
-        target_cc_dindex_df[target_cc_dindex_df.columns[0]].to_frame().applymap(lambda x, cc_negative_borders: cc_negative_borders.get(x, [None])[0], cc_negative_borders=cc_negative_borders)
+        target_cc_dindex_df[target_cc_dindex_df.columns[0]].to_frame().applymap(lambda x, cc_negative_borders: cc_negative_borders.get(x, [None, None])[0], cc_negative_borders=cc_negative_borders)
     target_cc_dindex_df['Confidence_Interval_Upper_on_Null_Distribution'] = \
-        target_cc_dindex_df[target_cc_dindex_df.columns[0]].to_frame().applymap(lambda x, cc_negative_borders: cc_negative_borders.get(x, [None])[1], cc_negative_borders=cc_negative_borders)
+        target_cc_dindex_df[target_cc_dindex_df.columns[0]].to_frame().applymap(lambda x, cc_negative_borders: cc_negative_borders.get(x, [None, None])[1], cc_negative_borders=cc_negative_borders)
     # import pdb; pdb.set_trace()
     target_cc_dindex_df.to_csv(os.path.join(args.output_dir, "All_DANGER_index_on_Cellular_Component.txt"), index=False, header=True, sep='\t')
     target_cc_dindex_df.query('Dindex > Confidence_Interval_Upper_on_Null_Distribution').to_csv(os.path.join(args.output_dir, "Significant_DANGER_index_on_Cellular_Component.txt"), index=False, header=True, sep='\t')
@@ -133,9 +136,9 @@ def main():
     # ネガコンデータのD-indexの信頼区間を算出
     mf_negative_borders = calculate_confidence_interval(args.neg_collection_dir, "DANGER_index_on_Molecular_Function.txt", args.confidence_level)
     target_mf_dindex_df['Confidence_Interval_Lower_on_Null_Distribution'] = \
-        target_mf_dindex_df[target_mf_dindex_df.columns[0]].to_frame().applymap(lambda x, mf_negative_borders: mf_negative_borders.get(x, [None])[0], mf_negative_borders=mf_negative_borders)
+        target_mf_dindex_df[target_mf_dindex_df.columns[0]].to_frame().applymap(lambda x, mf_negative_borders: mf_negative_borders.get(x, [None, None])[0], mf_negative_borders=mf_negative_borders)
     target_mf_dindex_df['Confidence_Interval_Upper_on_Null_Distribution'] = \
-        target_mf_dindex_df[target_mf_dindex_df.columns[0]].to_frame().applymap(lambda x, mf_negative_borders: mf_negative_borders.get(x, [None])[1], mf_negative_borders=mf_negative_borders)
+        target_mf_dindex_df[target_mf_dindex_df.columns[0]].to_frame().applymap(lambda x, mf_negative_borders: mf_negative_borders.get(x, [None, None])[1], mf_negative_borders=mf_negative_borders)
     # import pdb; pdb.set_trace()
     target_mf_dindex_df.to_csv(os.path.join(args.output_dir, "All_DANGER_index_on_Molecular_Function.txt"), index=False, header=True, sep='\t')
     target_mf_dindex_df.query('Dindex > Confidence_Interval_Upper_on_Null_Distribution').to_csv(os.path.join(args.output_dir, "Significant_DANGER_index_on_Molecular_Function.txt"), index=False, header=True, sep='\t')

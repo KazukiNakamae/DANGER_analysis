@@ -39,7 +39,7 @@ The example dataset was deposited in [SourceForge](https://sourceforge.net/proje
 Run collect_exp_data.py in Docker image.
 
 ```
-sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0 python /tmp/collect_exp_data.py \
+sudo docker run --name example_collectexp --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0 python /tmp/collect_exp_data.py \
 -o <Output directory> \
 -w <"RSEM.isoforms.results" in the expression profiles of WT samples> \
 -e <"RSEM.isoforms.results" in the expression profiles of Edited samples> \
@@ -48,11 +48,11 @@ sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0
 
 (EXAMPLE)
 ```bash
-sudo docker run --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0 python /tmp/collect_exp_data.py \
+sudo docker run --name example_collectexp --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0 python /tmp/collect_exp_data.py \
 -o exp_collection \
 -w rmrna_dj1_ctrl_rep1/RSEM.isoforms.results rmrna_dj1_ctrl_rep2/RSEM.isoforms.results rmrna_dj1_ctrl_rep3/RSEM.isoforms.results \
 -e rmrna_dj1_ko_rep1/RSEM.isoforms.results rmrna_dj1_ko_rep2/RSEM.isoforms.results rmrna_dj1_ko_rep3/RSEM.isoforms.results \
--t 2.5;
+-t 2.5; # TPM ratio < 1/2.5 = 0.4
 ```
 
 The output:
@@ -76,16 +76,30 @@ Comma-separated text file, including TPM values of each sample, Edited/WT ratio,
 -t:     Threshold for Edited/WT ratio. Edited/WT > (Threshold) is "upregulated." Edited/WT < 1/(Threshold) is "downregulated."
 ```
 
+## (Optional): Use expression profiles with DEG
+
+"DANGER Analysis can utilize the profile of DEGs instead of the aforementioned expression profiles. In such a case, it can be adapted to the input format of this tool by processing it as follows."
+```
+cat DEG_profile.csv | tr -d '"' > DEG_profile.csv_clean.csv;
+echo 'id,name,<ctrl sample 1>,<ctrl sample 2>,...,<ctrl sample n>,<edited sample 1>,<edited sample 2>,...,<edited sample n>,gene_id,a.value,m.value,p.value,q.value,rank,estimatedDEG,Exp' > DEG_data_header.csv
+cp DEG_data_header.csv DEG_profile_fixed.csv
+tail -n +2 DEG_profile.csv_clean.csv >> DEG_profile_fixed.csv
+### Use p < <alpha>
+awk -F, 'BEGIN{OFS=","} {if (NR==1)print $0;else {if($14 < <alpha> && $13 < 0) print $0, "downregulated";else if($14 < <alpha> && $13 > 0) print $0, "upregulated"; else print $0, "unchanged"}}' \
+DEG_profile_fixed.csv \
+> complete_DEG_profile.csv;
+```
+
 ### Step2: GO Annotation & D-index Calculation
 
 Run dangeranalysis_v1.sh in Docker image.
 
 ```
-sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
+sudo docker run --name example_danalysis --memory 100g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
 <Database for GO annotation> \
 <Database Type> \
 <Output directory> \
-<summary of TPM> \
+<expression profile> \
 <de novo transcriptome assembly (without redundancy)> \
 <binding sequence of protospacer & PAM> \
 <mismatch number for off-target search> \
@@ -94,7 +108,7 @@ sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 
 
 (EXAMPLE)
 ```bash
-sudo docker run --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
+sudo docker run --name example_danalysis --memory 100g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
 Dr \
 pep \
 output \
@@ -102,7 +116,7 @@ exp_collection/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
 fltr_lowexpr_dj1_trinity_out_dir.Trinity.fasta \
 guide_pam.fa \
 11 \
-NRR;
+NGG;
 ```
 
 #### dangeranalysis_v1.sh options
@@ -163,64 +177,48 @@ First, create expression permutation data. If you want to create 100 instances, 
 
 ```
 mkdir exp_p_data;
-sudo docker run \
-            -u "$(id -u $USER):$(id -g $USER)" \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/group:/etc/group:ro \
-            --name dangeranalysis_pdata --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
-            bash /tmp/get_multi_exp_permutation_data.sh \
-            <original summary of TPM> \
-            <First seed number> \
-            <Last seed number> \
-            exp_p_data/exp;
+sudo docker run --name genarate_exp_p_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+bash /tmp/get_multi_exp_permutation_data.sh \
+<original summary of TPM> \
+<First seed number> \
+<Last seed number> \
+exp_p_data/exp;
 ```
 
 (EXAMPLE)
 ```bash
-mkdir park7_5_exp_p_data;
-sudo docker run \
-            -u "$(id -u $USER):$(id -g $USER)" \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/group:/etc/group:ro \
-            --name park7_dangeranalysis_five --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
-            bash /tmp/get_multi_exp_permutation_data.sh \
-            park7_5_exp_original/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
-            1 \
-            100 \
-            park7_5_exp_p_data/exp;
+mkdir example_exp_p_data;
+sudo docker run --name genarate_exp_p_data --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+bash /tmp/get_multi_exp_permutation_data.sh \
+exp_collection/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
+1 \
+100 \
+example_exp_p_data/exp;
 ```
 
-The output data will be outputted as a directory, with the seed value added to the prefix(e.g. park7_5_exp_p_data/exp1, park7_5_exp_p_data/exp2, ...).
+The output data will be outputted as a directory, with the seed value added to the prefix(e.g. park7_2_5_exp_p_data/exp1, park7_2_5_exp_p_data/exp2, ...).
 
 Second, create off-target permutation data. If you want to create 100 instances, input as follows
 
 ```
 mkdir mm_p_data;
-sudo docker run \
-            -u "$(id -u $USER):$(id -g $USER)" \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/group:/etc/group:ro \
-            --name dangeranalysis_pdata --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
-            bash /tmp/get_multi_mm_permutation_data.sh \
-            <Original off-target profile> \
-            <First seed number> \
-            <Last seed number> \
-            mm_p_data/mm;
+sudo docker run --name genarate_mm_p_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+bash /tmp/get_multi_mm_permutation_data.sh \
+<Original off-target profile> \
+<First seed number> \
+<Last seed number> \
+mm_p_data/mm;
 ```
 
 (EXAMPLE)
 ```bash
-mkdir park7_mm8_NGG_data;
-sudo docker run \
-            -u "$(id -u $USER):$(id -g $USER)" \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/group:/etc/group:ro \
-            --name park7_dangeranalysis_mm --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
-            bash /tmp/get_multi_mm_permutation_data.sh \
-            park7_5_result_original/Result_offtarget_all.cas-offinder \
-            1 \
-            100 \
-            park7_mm8_NGG_data/mm;
+mkdir example_mm_p_data;
+sudo docker run --name genarate_mm_p_data --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+bash /tmp/get_multi_mm_permutation_data.sh \
+output/Result_offtarget_all.cas-offinder \
+1 \
+100 \
+example_mm_p_data/mm;
 ```
 
 The output data will be outputted as a directory, with the seed value added to the prefix(e.g. park7_mm8_NGG_data/mm1, park7_mm8_NGG_data/mm2, ...).
@@ -232,10 +230,7 @@ mkdir p_result;
 for seed in $(seq <First seed number> <Last seed number>)
 do
         sudo docker run \
-                -u "$(id -u $USER):$(id -g $USER)" \
-                -v /etc/passwd:/etc/passwd:ro \
-                -v /etc/group:/etc/group:ro \
-                --name park7_5_random_mm8_dangeranalysis_p${seed} --memory 20g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangertest:1.0 bash /tmp/dangertest_v2.sh \
+                --name example_dangeranalysis_false_p${seed} --memory 20g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangertest:1.0 bash /tmp/dangertest_v2.sh \
                 <Database for GO annotation> \
                 <Database Type> \
                 p_result/p${seed} \
@@ -248,21 +243,18 @@ done
 
 (EXAMPLE)
 ```bash
-mkdir park7_5_random_mm8_NGG_exp_p_result;
+mkdir false_output;
 for seed in $(seq 1 100)
 do
-        sudo docker run \
-                -u "$(id -u $USER):$(id -g $USER)" \
-                -v /etc/passwd:/etc/passwd:ro \
-                -v /etc/group:/etc/group:ro \
-                --name park7_5_random_mm8_dangeranalysis_p${seed} --memory 20g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangertest:1.0 bash /tmp/dangertest_v2.sh \
-                Dr \
-                pep \
-                park7_5_random_mm8_NGG_exp_p_result/p${seed} \
-                park7_5_exp_p_data/exp_p${seed}/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
-                park7_mm8_NGG_data/mm_p${seed}/Result_offtarget_all.cas-offinder \
-                park7_5_result_original \
-                park7_guide_pam.fa;
+  sudo docker run \
+          --name example_dangeranalysis_false_p${seed} --memory 20g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangertest:1.0 bash /tmp/dangertest_v2.sh \
+          Dr \
+          pep \
+          false_output/p${seed} \
+          example_exp_p_data/exp_p${seed}/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
+          example_mm_p_data/mm_p${seed}/Result_offtarget_all.cas-offinder \
+          output \
+          guide_pam.fa;
 done
 ```
 
@@ -270,38 +262,34 @@ D-indices greater than the specified confidence interval from the t-distribution
 
 ```
 sudo docker run \
-  -u "$(id -u $USER):$(id -g $USER)" \
-  -v /etc/passwd:/etc/passwd:ro \
-  -v /etc/group:/etc/group:ro \
-  --name park7_dangeranalysis_dindextest --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
-  python /tmp/dindex_test.py \
-  -t <Original directory of DANGER analysis> \
-  -n <directory of pseudo DANGER analysis> \
-  -c <Confidence interval> \
-  -o <Output directory>;
+--name example_dindextest --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+python /tmp/dindex_test.py \
+-t <Original directory of DANGER analysis> \
+-n <directory of pseudo DANGER analysis> \
+-c <Confidence interval> \
+-o <Output directory>;
 ```
 
 (EXAMPLE)
 ```bash
 sudo docker run \
-  -u "$(id -u $USER):$(id -g $USER)" \
-  -v /etc/passwd:/etc/passwd:ro \
-  -v /etc/group:/etc/group:ro \
-  --name park7_dangeranalysis_dindextest --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
-  python /tmp/dindex_test.py \
-  -t park7_5_result_original \
-  -n park7_5_random_mm8_NGG_exp_p_result \
-  -c 0.99999 \
-  -o park7_5_mm8_NGG_Dindex_test_n100_ci99_999percent;
+--name example_dindextest --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+python /tmp/dindex_test.py \
+-t output \
+-n false_output \
+-c 0.999999999999999 \
+-o example_dindex_test_n100_ci99_9999999999999percent;
 ```
 
 
 The table of significant D-indice will be saved as "Significant_DANGER_index_on_***.txt".
 
+(EXAMPLE)
 <img src="https://github.com/KazukiNakamae/DANGER_analysis/blob/main/images/Significant_DANGER_index_on_Molecular_Function.txt.png" alt="Result tabele" title="Result tabele" height="100">
 
 The table will be visualized and saved as "Significant_DANGER_index_on_***.tiff."
 
+(EXAMPLE)
 <img src="https://github.com/KazukiNakamae/DANGER_analysis/blob/main/images/Significant_DANGER_index_on_Molecular_Function.tiff.png" alt="Result tabele" title="Result tabele" height="300">
 
 
@@ -315,12 +303,9 @@ First, create expression permutation data for the test. If you want to create 10
 ```bash
 mkdir falsepos_exp_p_data;
 sudo docker run \
-            -u "$(id -u $USER):$(id -g $USER)" \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/group:/etc/group:ro \
-            --name falsepos_park7_5_exp_p_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+            --name falsepos_park7_2_5_exp_p_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
             bash /tmp/get_multi_exp_permutation_data.sh \
-            <original summary of TPM> \
+            <original expression profile> \
             <First seed number> \
             <Last seed number> \
             falsepos_exp_p_data/<Output prefix>;
@@ -328,17 +313,13 @@ sudo docker run \
 
 (EXAMPLE)
 ```bash
-mkdir falsepos_park7_5_exp_p_data;
-sudo docker run \
-            -u "$(id -u $USER):$(id -g $USER)" \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/group:/etc/group:ro \
-            --name falsepos_park7_5_exp_p_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
-            bash /tmp/get_multi_exp_permutation_data.sh \
-            park7_5_exp_original/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
-            1001 \
-            1010 \
-            falsepos_park7_5_exp_p_data/exp;
+mkdir falsepos_example_exp_p_data;
+sudo docker run --name falsepos_example_exp_p_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+bash /tmp/get_multi_exp_permutation_data.sh \
+exp_collection/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
+1001 \
+1010 \
+falsepos_example_exp_p_data/exp;
 ```
 
 Second, create off-target permutation data. If you want to create 100 instances, input as follows
@@ -347,9 +328,6 @@ Second, create off-target permutation data. If you want to create 100 instances,
 ```bash
 mkdir falsepos_mm_p_data;
 sudo docker run \
-            -u "$(id -u $USER):$(id -g $USER)" \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/group:/etc/group:ro \
             --name falsepos_park7_mm8_NGG_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
             bash /tmp/get_multi_mm_permutation_data.sh \
             <Original off-target profile> \
@@ -360,17 +338,13 @@ sudo docker run \
 
 (EXAMPLE)
 ```bash
-mkdir falsepos_park7_mm8_NGG_data;
-sudo docker run \
-            -u "$(id -u $USER):$(id -g $USER)" \
-            -v /etc/passwd:/etc/passwd:ro \
-            -v /etc/group:/etc/group:ro \
-            --name falsepos_park7_mm8_NGG_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
-            bash /tmp/get_multi_mm_permutation_data.sh \
-            park7_5_result_original/Result_offtarget_all.cas-offinder \
-            1001 \
-            1010 \
-            falsepos_park7_mm8_NGG_data/mm;
+mkdir falsepos_example_mm_p_data;
+sudo docker run --name falsepos_example_mm_p_data --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+bash /tmp/get_multi_mm_permutation_data.sh \
+output/Result_offtarget_all.cas-offinder \
+1001 \
+1010 \
+falsepos_example_mm_p_data/mm;
 ```
 
 Next, calculate the pseudo D-index based on the above permutation data.
@@ -378,13 +352,10 @@ Next, calculate the pseudo D-index based on the above permutation data.
 
 ```bash
 mkdir falsepos_p_result;
-for seed in $(seq 1001 1010)
+for seed in $(seq <First seed number> <Last seed number>)
 do
         sudo docker run \
-                -u "$(id -u $USER):$(id -g $USER)" \
-                -v /etc/passwd:/etc/passwd:ro \
-                -v /etc/group:/etc/group:ro \
-                --name falsepos_park7_5_random_mm8_NGG_dangeranalysis_p${seed} --memory 20g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangertest:1.0 bash /tmp/dangertest_v2.sh \
+                --name falsepos_park7_2_5_random_mm8_NGG_dangeranalysis_p${seed} --memory 20g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangertest:1.0 bash /tmp/dangertest_v2.sh \
                 <Database for GO annotation> \
                 <Database Type> \
                 falsepos_p_result/p${seed} \
@@ -397,31 +368,54 @@ done
 
 (EXAMPLE)
 ```bash
-mkdir falsepos_park7_5_random_mm8_NGG_exp_p_result;
+mkdir falsepos_outputs;
 for seed in $(seq 1001 1010)
 do
         sudo docker run \
-                -u "$(id -u $USER):$(id -g $USER)" \
-                -v /etc/passwd:/etc/passwd:ro \
-                -v /etc/group:/etc/group:ro \
-                --name falsepos_park7_5_random_mm8_NGG_dangeranalysis_p${seed} --memory 20g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangertest:1.0 bash /tmp/dangertest_v2.sh \
+                --name falsepos_park7_2_5_random_mm8_NGG_dangeranalysis_p${seed} --memory 20g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangertest:1.0 bash /tmp/dangertest_v2.sh \
                 Dr \
                 pep \
-                falsepos_park7_5_random_mm8_NGG_exp_p_result/p${seed} \
-                falsepos_park7_5_exp_p_data/exp_p${seed}/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
-                falsepos_park7_mm8_NGG_data/mm_p${seed}/Result_offtarget_all.cas-offinder \
-                park7_5_result_original \
-                park7_guide_pam.fa;
+                falsepos_outputs/p${seed} \
+                falsepos_example_exp_p_data/exp_p${seed}/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
+                falsepos_example_mm_p_data/mm_p${seed}/Result_offtarget_all.cas-offinder \
+                output \
+                guide_pam.fa;
 done
 ```
 
 The pseudo D-indices greater than the specified confidence interval from the t-distribution calculated from the pseudo D-indices of Step3 are considered significant
 **The paramter shoud be same as Step3**
 
-mkdir falsepos_park7_5_random_mm8_NGG_Dindex_test_n100;
-sudo bash falsepos_park7_5_random_mm8_NGG_dangertest_p99999_1001_1010_dindextest.sh; # 信頼区間99.999%以上の場合
+```bash
+mkdir <directory of D-index test using pseudo DANGER analysis>;
+for seed in $(seq <First seed number> <Last seed number>)
+do
+        sudo docker run \
+                --name dangeranalysis_dindextest_${seed} --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+                python /tmp/dindex_test.py \
+                -t falsepos_p_result/p${seed} \
+                -n <directory of pseudo DANGER analysis> \
+                -c <Confidence interval> \
+                -o <directory of D-index test using pseudo DANGER analysis>/<user-defined label>_${seed};
+done
+```
 
-The proportion of D-index detections in 'Significant_DANGER_index_on_.txt' relative to 'All_DANGER_index_on_.txt' is calculated as the false positive rate. In this case, it was calculated for each seed value, and when the mean value and SEM were calculated, the result was 19±1.1%. This suggests that about 1/5 of the D-indices calculated in Step 3 are suspected of being false positive detections. Because this false positive rate varies depending on the strictness of the parameters, it is necessary to adjust appropriately according to the user's purpose.
+(EXAMPLE)
+```bash
+mkdir falsepos_Dindex_test_n100;
+for seed in $(seq 1001 1010)
+do
+        sudo docker run \
+                --name dangeranalysis_dindextest_${seed} --memory 20g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangertest:1.0 \
+                python /tmp/dindex_test.py \
+                -t falsepos_outputs/p${seed} \
+                -n false_output \
+                -c 0.999999999999999 \
+                -o falsepos_Dindex_test_n100/99_9999999999999percent_seed_${seed};
+done
+```
+
+The proportion of the number of D-index detected in 'Significant_DANGER_index_on_XXX.txt' relative to that in 'All_DANGER_index_on_XXX.txt' is calculated as the false positive rate. 
 
 
 ## Run DANGER Analysis in your local environment using conda (Deprecated)
