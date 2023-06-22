@@ -285,11 +285,13 @@ python /tmp/dindex_test.py \
 The table of significant D-indice will be saved as "Significant_DANGER_index_on_***.txt".
 
 (EXAMPLE)
+
 <img src="https://github.com/KazukiNakamae/DANGER_analysis/blob/main/images/Significant_DANGER_index_on_Molecular_Function.txt.png" alt="Result tabele" title="Result tabele" height="100">
 
 The table will be visualized and saved as "Significant_DANGER_index_on_***.tiff."
 
 (EXAMPLE)
+
 <img src="https://github.com/KazukiNakamae/DANGER_analysis/blob/main/images/Significant_DANGER_index_on_Molecular_Function.tiff.png" alt="Result tabele" title="Result tabele" height="300">
 
 
