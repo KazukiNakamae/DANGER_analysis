@@ -78,7 +78,13 @@ Comma-separated text file, including TPM values of each sample, Edited/WT ratio,
 
 ## (Optional): Use expression profiles with DEG
 
-"DANGER Analysis can utilize the profile of DEGs instead of the aforementioned expression profiles. In such a case, it can be adapted to the input format of this tool by processing it as follows."
+"DANGER Analysis can utilize the DEG profile instead of the aforementioned expression profiles."
+
+DEG profile can be made according to the below example.
+
+[DEG analysis of de novo transcriptome assembly from Trinity](https://github.com/KazukiNakamae/DEG_analysis)
+
+"The DEG profile can be adapted to the input format of DANGER analysis by processing it as follows."
 ```
 cat DEG_profile.csv | tr -d '"' > DEG_profile.csv_clean.csv;
 echo 'id,name,<ctrl sample 1>,<ctrl sample 2>,...,<ctrl sample n>,<edited sample 1>,<edited sample 2>,...,<edited sample n>,gene_id,a.value,m.value,p.value,q.value,rank,estimatedDEG,Exp' > DEG_data_header.csv
