@@ -78,7 +78,7 @@ Comma-separated text file, including TPM values of each sample, Edited/WT ratio,
 -t:     Threshold for Edited/WT ratio. Edited/WT > (Threshold) is "upregulated." Edited/WT < 1/(Threshold) is "downregulated."
 ```
 
-## (Optional): Use expression profiles with DEG
+#### (Optional): Use expression profiles with DEG
 
 "DANGER Analysis can utilize the DEG profile instead of the aforementioned expression profiles."
 

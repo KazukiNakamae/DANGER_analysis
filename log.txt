@@ -1,0 +1,27 @@
+
+### GGSEARCHがcdnaで使えない問題
+
+# データベースの解凍ができていないかもしれないので、ちょっとスクリプトを変更してdocker image化してテスト
+cd /Users/kazuki/GitHub/DANGER_analysis/DANGERanalysis_docker_v_1_1;
+sudo docker build --no-cache=true -t kazukinakamae/dangeranalysis:1.1 --platform linux/amd64 .;
+docker push kazukinakamae/dangeranalysis:1.1;
+
+ssh nakamae@10.28.16.58 -p 10022
+mkdir dangeranalysis_v1_1_test;cd dangeranalysis_v1_1_test;
+example ファイルをダウンロード
+wget –content-disposition https://sourceforge.net/projects/danger-analysis-v1/files/latest;
+mv latest example.tar.gz;
+tar -zxvf example.tar.gz;
+cd example;
+
+sudo docker run \
+-u "$(id -u $USER):$(id -g $USER)" \
+-v /etc/passwd:/etc/passwd:ro \
+-v /etc/group:/etc/group:ro \
+--name example_collectexp --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.1 python /tmp/collect_exp_data.py \
+-o exp_collection \
+-w rmrna_dj1_ctrl_rep1/RSEM.isoforms.results rmrna_dj1_ctrl_rep2/RSEM.isoforms.results rmrna_dj1_ctrl_rep3/RSEM.isoforms.results \
+-e rmrna_dj1_ko_rep1/RSEM.isoforms.results rmrna_dj1_ko_rep2/RSEM.isoforms.results rmrna_dj1_ko_rep3/RSEM.isoforms.results \
+-t 2.5; # TPM ratio < 1/2.5 = 0.4
+
+wget https://ftp.ensembl.org/pub/current_fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz;

@@ -450,11 +450,11 @@ echo "---------------------------------------------------------------------"
 echo "|                      GO enrichment analysis                      |"
 echo "---------------------------------------------------------------------"
 
+micromamba activate transdecoder_env;
 if [ $db_type = "pep" ]; then
   echo "-------------------------------"
   echo "Predict ORFs using TransDecoder"
   cd /tmp;
-  micromamba activate transdecoder_env;
   cp ${assembly} Trinity.fasta;
   chmod +x ./11TransDecoder.sh;
   ./11TransDecoder.sh
