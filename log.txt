@@ -6,12 +6,20 @@ cd /Users/kazuki/GitHub/DANGER_analysis/DANGERanalysis_docker_v_1_1;
 sudo docker build --no-cache=true -t kazukinakamae/dangeranalysis:1.1 --platform linux/amd64 .;
 docker push kazukinakamae/dangeranalysis:1.1;
 
-ssh nakamae@10.28.16.58 -p 10022
-mkdir dangeranalysis_v1_1_test;cd dangeranalysis_v1_1_test;
+ssh bonohulab2@10.28.16.58 -p 10022
+bonohulab2020
+byobu
+cd Nakamae;
+sudo chmod 777 Danger_analysis;
+bonohulab2020
+cd Danger_analysis;
+mkdir dangeranalysis_v1_1_test;
+cd dangeranalysis_v1_1_test;
 example ファイルをダウンロード
-wget –content-disposition https://sourceforge.net/projects/danger-analysis-v1/files/latest;
-mv latest example.tar.gz;
+wget –content-disposition https://sourceforge.net/projects/danger-analysis-v1/files/example.tar.gz;
 tar -zxvf example.tar.gz;
+sudo chmod 777 example;
+bonohulab2020
 cd example;
 
 sudo docker run \
@@ -23,5 +31,35 @@ sudo docker run \
 -w rmrna_dj1_ctrl_rep1/RSEM.isoforms.results rmrna_dj1_ctrl_rep2/RSEM.isoforms.results rmrna_dj1_ctrl_rep3/RSEM.isoforms.results \
 -e rmrna_dj1_ko_rep1/RSEM.isoforms.results rmrna_dj1_ko_rep2/RSEM.isoforms.results rmrna_dj1_ko_rep3/RSEM.isoforms.results \
 -t 2.5; # TPM ratio < 1/2.5 = 0.4
+
+# 前バージョンの場合
+sudo docker run \
+-u "$(id -u $USER):$(id -g $USER)" \
+-v /etc/passwd:/etc/passwd:ro \
+-v /etc/group:/etc/group:ro \
+--name example_danalysis --memory 100g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
+Dr \
+cdna \
+output_20230825_cdna_test \
+exp_collection/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
+fltr_lowexpr_dj1_trinity_out_dir.Trinity.fasta \
+guide_pam.fa \
+11 \
+NGG;
+
+# 現バージョンの場合
+sudo docker run \
+-u "$(id -u $USER):$(id -g $USER)" \
+-v /etc/passwd:/etc/passwd:ro \
+-v /etc/group:/etc/group:ro \
+--name example_danalysis1_1 --memory 100g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.1 bash /tmp/dangeranalysis_v1.sh \
+Dr \
+cdna \
+output_20230825_cdna_test2 \
+exp_collection/ctrl_edited_fltrexpr_contig_tpm_onratio.csv \
+fltr_lowexpr_dj1_trinity_out_dir.Trinity.fasta \
+guide_pam.fa \
+11 \
+NGG;
 
 wget https://ftp.ensembl.org/pub/current_fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz;

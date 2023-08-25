@@ -175,7 +175,9 @@ The table of D-indice will be saved as "DANGER_index_on_***.txt".
 
 <img src="https://github.com/KazukiNakamae/DANGER_analysis/blob/main/images/DANGER_index_on_Molecular_Function.txt.png" alt="Result tabele" title="Result tabele" height="300">
 
+#### Troubleshooting
 
+- If you are a non-root user, the command can fail to download databases. We recommend that the root user runs the command.
 
 ### Step3: D-index Evaluation
 

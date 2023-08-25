@@ -460,6 +460,8 @@ if [ $db_type = "pep" ]; then
   ./11TransDecoder.sh
   target_seq_file=Trinity.fasta.transdecoder.pep
 elif [ $db_type = "cdna" ]; then
+  cd /tmp;
+  cp ${assembly} Trinity.fasta;
   target_seq_file=Trinity.fasta
 else
   echo "Unexpected Input"
