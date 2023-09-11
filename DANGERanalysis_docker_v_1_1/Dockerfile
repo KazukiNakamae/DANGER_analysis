@@ -36,16 +36,24 @@ COPY 00_prepare_faa_4Fanflow.sh .
 COPY 11TransDecoder.sh .
 COPY 12GetRefProts.sh .
 COPY 15ggsearch.sh .
+COPY 15ggsearch_cdna.sh .
+COPY 15fasta_cdna.sh .
 COPY 15parseggsearch_linux.sh .
+COPY 15parseggsearch_cdna_linux.sh .
 COPY 15parseggsearch.pl .
+COPY 15parseggsearch_cdna.pl .
 COPY 15mkannotbl.pl .
 USER root
 RUN chmod 755 00_prepare_faa_4Fanflow.sh
 RUN chmod 755 11TransDecoder.sh
 RUN chmod 755 12GetRefProts.sh
 RUN chmod 755 15ggsearch.sh
+RUN chmod 755 15ggsearch_cdna.sh
+RUN chmod 755 15fasta_cdna.sh
 RUN chmod 755 15parseggsearch_linux.sh
+RUN chmod 755 15parseggsearch_cdna_linux.sh
 RUN chmod 755 15parseggsearch.pl
+RUN chmod 755 15parseggsearch_cdna.pl
 RUN chmod 755 15mkannotbl.pl
 COPY collect_exp_data.py .
 COPY dangeranalysis_v1.sh .

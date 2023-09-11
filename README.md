@@ -41,7 +41,7 @@ The example dataset was deposited in [SourceForge](https://sourceforge.net/proje
 Run collect_exp_data.py in Docker image.
 
 ```
-sudo docker run --name example_collectexp --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0 python /tmp/collect_exp_data.py \
+sudo docker run --name example_collectexp --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.1 python /tmp/collect_exp_data.py \
 -o <Output directory> \
 -w <"RSEM.isoforms.results" in the expression profiles of WT samples> \
 -e <"RSEM.isoforms.results" in the expression profiles of Edited samples> \
@@ -50,7 +50,7 @@ sudo docker run --name example_collectexp --memory 10g --rm -v `pwd`:/DATA -w /D
 
 (EXAMPLE)
 ```bash
-sudo docker run --name example_collectexp --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.0 python /tmp/collect_exp_data.py \
+sudo docker run --name example_collectexp --memory 10g --rm -v `pwd`:/DATA -w /DATA -i kazukinakamae/dangeranalysis:1.1 python /tmp/collect_exp_data.py \
 -o exp_collection \
 -w rmrna_dj1_ctrl_rep1/RSEM.isoforms.results rmrna_dj1_ctrl_rep2/RSEM.isoforms.results rmrna_dj1_ctrl_rep3/RSEM.isoforms.results \
 -e rmrna_dj1_ko_rep1/RSEM.isoforms.results rmrna_dj1_ko_rep2/RSEM.isoforms.results rmrna_dj1_ko_rep3/RSEM.isoforms.results \
@@ -103,7 +103,7 @@ DEG_profile_fixed.csv \
 Run dangeranalysis_v1.sh in Docker image.
 
 ```
-sudo docker run --name example_danalysis --memory 100g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
+sudo docker run --name example_danalysis --memory 100g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.1 bash /tmp/dangeranalysis_v1.sh \
 <Database for GO annotation> \
 <Database Type> \
 <Output directory> \
@@ -116,7 +116,7 @@ sudo docker run --name example_danalysis --memory 100g --rm -v `pwd`:/DATA -w /t
 
 (EXAMPLE)
 ```bash
-sudo docker run --name example_danalysis --memory 100g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.0 bash /tmp/dangeranalysis_v1.sh \
+sudo docker run --name example_danalysis --memory 100g --rm -v `pwd`:/DATA -w /tmp -i kazukinakamae/dangeranalysis:1.1 bash /tmp/dangeranalysis_v1.sh \
 Dr \
 pep \
 output \

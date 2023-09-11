@@ -456,7 +456,7 @@ if [ $db_type = "pep" ]; then
   echo "Predict ORFs using TransDecoder"
   cd /tmp;
   cp ${assembly} Trinity.fasta;
-  chmod +x ./11TransDecoder.sh;
+  # chmod +x ./11TransDecoder.sh;
   ./11TransDecoder.sh
   target_seq_file=Trinity.fasta.transdecoder.pep
 elif [ $db_type = "cdna" ]; then
@@ -474,44 +474,69 @@ echo "-------------------------------"
 echo "Add dummy word into blank in database"
 unzip_db_data=${db_data%.*}
 unpigz -c db/${db_data} > $unzip_db_data;
-chmod +x 00_prepare_faa_4Fanflow.sh;
+# chmod +x 00_prepare_faa_4Fanflow.sh;
 ./00_prepare_faa_4Fanflow.sh ${unzip_db_data};
+modified_db_data=${unzip_db_data%.*}.fa2
+if [ $db_type = "cdna" ]; then
+  # make split database
+  mkdir query_files;
+  seqkit split --by-id ${target_seq_file} -O query_files;
+fi
 micromamba deactivate;
 
 echo "done."
 echo "-------------------------------"
 echo "Run GGSEARCH"
-micromamba activate fasta3_env;
-chmod +x ./15ggsearch.sh;
-modified_db_data=${unzip_db_data%.*}.fa2
-./15ggsearch.sh ${target_seq_file} ${modified_db_data};
-echo "..."
-micromamba deactivate
+if [ $db_type = "pep" ]; then
+  micromamba activate fasta3_env;
+  # chmod +x ./15ggsearch.sh;
+  ./15ggsearch.sh ${target_seq_file} ${modified_db_data};
+  echo "..."
+  micromamba deactivate
 
-echo "done."
-echo "-------------------------------"
-echo "Make gene annotation table"
-chmod +x 15parseggsearch_linux.sh;
-./15parseggsearch_linux.sh ${modified_db_data};
+  echo "done."
+  echo "-------------------------------"
+  echo "Make gene annotation table"
+  # chmod +x 15parseggsearch_linux.sh;
+  ./15parseggsearch_linux.sh ${modified_db_data};
+elif [ $db_type = "cdna" ]; then
+  micromamba activate fasta3_env;
+  # chmod +x ./15ggsearch.sh;
+  ./15ggsearch_cdna.sh ${target_seq_file} ${modified_db_data};
+  echo "..."
+  micromamba deactivate
+
+  echo "done."
+  echo "-------------------------------"
+  echo "Make gene annotation table"
+  # chmod +x 15parseggsearch_cdna_linux.sh;
+  ./15parseggsearch_cdna_linux.sh ${modified_db_data};
+else
+  echo "Unexpected Input"
+  echo "DANGER analysis aborts..."
+  exit 1;
+fi
 perl -nle 'print $1 if(/^\>(\S+)/)' ${target_seq_file} > ${outpur_dir}/coding-transcript.pid.txt;
 cat ${outpur_dir}/coding-transcript.pid.txt | perl 15mkannotbl.pl ${target_seq_file}-${modified_db_data}.txt > ${target_seq_file}_all.txt;
 cp ${modified_db_data} ${outpur_dir}/`basename ${modified_db_data}`;
 cp ${target_seq_file} ${outpur_dir}/${target_seq_file};
+cp ${modified_db_data} ${outpur_dir}/${modified_db_data}
+cp ggsearch_${target_seq_file}-${modified_db_data}.txt.gz ${outpur_dir}/ggsearch_${target_seq_file}-${modified_db_data}.txt.gz
 cp ${target_seq_file}-${modified_db_data}.txt ${outpur_dir}/${target_seq_file}-${modified_db_data}.txt;
 cp ${target_seq_file}_all.txt ${outpur_dir}/${target_seq_file}_all.txt;
 
 echo "done."
 echo "-------------------------------"
-echo "Search downregulated transcripts using TPM ratio"
+echo "Search downregulated transcripts"
 awk -F',' '{ if ($NF ~ /downregulated/) { print } }' ${exp_fn} > ${outpur_dir}/downregulated_ONratio.csv;
 awk -F',' '{ print $1 }' ${outpur_dir}/downregulated_ONratio.csv > ${outpur_dir}/Result_downregulated_ONratio_list.txt;
 wc -l ${outpur_dir}/Result_downregulated_ONratio_list.txt;
-wc -l ${outpur_dir}/Result_downregulated_ONratio_list.txt > ${outpur_dir}/Summary_Count_of_All_downregulate_TPMratio_Transcripts.txt;
+wc -l ${outpur_dir}/Result_downregulated_ONratio_list.txt > ${outpur_dir}/Summary_Count_of_All_downregulate_value_Transcripts.txt;
 # downregulated_ONratio = 439908
 
 echo "done."
 echo "-------------------------------"
-echo "Search dTPM transcripts"
+echo "Search downregulated transcripts"
 micromamba activate matplotlib_venn_env;
 # Make Venn diagram using https://bioinformatics.psb.ugent.be/webtools/Venn/
 ###
@@ -531,13 +556,13 @@ python drawVennDiagram.py ${outpur_dir}/all_offtarget_vs_dONrartio.id.txt \
   ${outpur_dir}/Result_offtarget_all_uniq_list.txt \
   ${outpur_dir}/Result_downregulated_ONratio_list.txt;
 wc -l ${outpur_dir}/all_offtarget_vs_dONrartio.id.txt;
-wc -l ${outpur_dir}/all_offtarget_vs_dONrartio.id.txt > ${outpur_dir}/Summary_Count_of_All_downregulate_TPMratio_offtarget_Transcripts.txt;
+wc -l ${outpur_dir}/all_offtarget_vs_dONrartio.id.txt > ${outpur_dir}/Summary_Count_of_All_downregulate_value_offtarget_Transcripts.txt;
 micromamba deactivate
 
 # TODO:各生物IDに書き換える
 echo "done."
 echo "-------------------------------"
-echo "Perform enrichment analysis in group of dTPM"
+echo "Perform enrichment analysis in group of downregulated elements"
 while read line;
   do grep $line ${outpur_dir}/coding-transcript.pid.txt >> ${outpur_dir}/all_offtarget_vs_dONrartio.pid.txt;
   done < ${outpur_dir}/all_offtarget_vs_dONrartio.id.txt;
@@ -546,12 +571,12 @@ cat ${outpur_dir}/all_offtarget_vs_dONrartio.pid.txt | perl 15mkannotbl.pl ${out
 awk '$2!=""' ${outpur_dir}/all_offtarget_vs_dONrartio_annotation_table.txt > temp_all_offtarget_vs_dONrartio_annotation_table.txt_hasAnnotation.txt;
 awk '{ if ($2 !~ /non/) { print } }' temp_all_offtarget_vs_dONrartio_annotation_table.txt_hasAnnotation.txt > ${outpur_dir}/all_offtarget_vs_dONrartio_annotation_table.txt_hasAnnotation.txt;
 wc -l ${outpur_dir}/all_offtarget_vs_dONrartio_annotation_table.txt_hasAnnotation.txt;
-wc -l ${outpur_dir}/all_offtarget_vs_dONrartio_annotation_table.txt_hasAnnotation.txt > ${outpur_dir}/Summary_Count_of_All_geneidentified_downregulate_TPMratio_offtarget_Transcripts.txt;
+wc -l ${outpur_dir}/all_offtarget_vs_dONrartio_annotation_table.txt_hasAnnotation.txt > ${outpur_dir}/Summary_Count_of_All_geneidentified_downregulate_value_offtarget_Transcripts.txt;
 # 1246 transcripts have Annotation ID
 
 echo "done."
 echo "-------------------------------"
-echo "Search downregulated transcripts for each mismatch number using TPM ratio"
+echo "Search downregulated transcripts for each mismatch number"
 for i in {0..11};
   do awk '{ print $2 }' ${outpur_dir}/Result_offtarget_mm"$i".cas-offinder > ${outpur_dir}/offtarget_mm"$i"_list.txt;
   awk '!seen[$0]++' ${outpur_dir}/offtarget_mm"$i"_list.txt > ${outpur_dir}/offtarget_mm"$i"_uniq_list.txt;
@@ -577,7 +602,7 @@ done;
 
 echo "done."
 echo "-------------------------------"
-echo "Search dTPM transcripts for each mismatch number using TPM ratio"
+echo "Search downregulated transcripts for each mismatch number"
 # Search downrregulated ONratio & off-target for each mismatch number
 mkdir ${outpur_dir}/mm_offtarget_dONratio;
 # Draw Venn diagram
@@ -589,7 +614,7 @@ for i in {0..11};
   ${outpur_dir}/Result_downregulated_ONratio_list.txt;
   if [ -f "${outpur_dir}/mm_offtarget_dONratio/mm${i}_offtarget_dONratio.id.txt" ]; then
     wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio.id.txt;
-    wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio.id.txt > ${outpur_dir}/Summary_Count_of_mm"$i"_downregulate_TPMratio_offtarget_Transcripts.txt;
+    wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio.id.txt > ${outpur_dir}/Summary_Count_of_mm"$i"_downregulate_value_offtarget_Transcripts.txt;
   fi
 done;
 ### ONratio & off-target for each mismatch number
@@ -610,7 +635,7 @@ micromamba deactivate;
 
 echo "done."
 echo "-------------------------------"
-echo "Search gene-annotated dTPM transcripts for each mismatch number using TPM ratio"
+echo "Search gene-annotated downregulated transcripts for each mismatch number"
 # Search transcript annotated with Annotation
 for i in {0..11};do
   while read line;
@@ -618,7 +643,7 @@ for i in {0..11};do
   done < ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio.id.txt;
   if [ -f "${outpur_dir}/mm_offtarget_dONratio/mm${i}_offtarget_dONratio.pid.txt" ]; then
     wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio.pid.txt;
-    wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio.pid.txt > ${outpur_dir}/Summary_Count_of_mm"$i"_downregulate_TPMratio_offtarget_ORFs.txt;
+    wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio.pid.txt > ${outpur_dir}/Summary_Count_of_mm"$i"_downregulate_value_offtarget_ORFs.txt;
   fi
 done;
 ### transcript with ORFs
@@ -645,7 +670,7 @@ for i in {0..11};
   awk '{ if ($2 !~ /non/) { print } }' temp_mm"$i"_offtarget_dONratio_annotation_table.txt_hasAnnotation.txt > ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio_annotation_table.txt_hasAnnotation.txt;
   if [ -f "${outpur_dir}/mm_offtarget_dONratio/mm${i}_offtarget_dONratio_annotation_table.txt_hasAnnotation.txt" ]; then
     wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio_annotation_table.txt_hasAnnotation.txt;
-    wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio_annotation_table.txt_hasAnnotation.txt > ${outpur_dir}/Summary_Count_of_mm"$i"_geneidentified_downregulate_TPMratio_offtarget_Transcripts.txt;
+    wc -l ${outpur_dir}/mm_offtarget_dONratio/mm"$i"_offtarget_dONratio_annotation_table.txt_hasAnnotation.txt > ${outpur_dir}/Summary_Count_of_mm"$i"_geneidentified_downregulate_value_offtarget_Transcripts.txt;
   fi
 done;
 ### transcript with Annotation ID
